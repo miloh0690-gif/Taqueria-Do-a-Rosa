@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1511">
+<title>Taquería Doña Rosa - POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{bg:'#0b1511',sf:'#12221a',sf2:'#1a2f24',ln:'#2b4637',rose:'#d8283c',mag:'#b3226b',gold:'#d9a441',cream:'#f6efe0',mut:'#9fb3a6'}}}}</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{font-family:Inter,sans-serif}
+.fd{font-family:Rye,serif;letter-spacing:.04em}
+.mono{font-family:'JetBrains Mono',monospace}
+body{background:#0b1511;color:#f6efe0}
+.tex{background-image:radial-gradient(circle at 15% 8%,rgba(216,40,60,.08),transparent 38%),radial-gradient(circle at 92% 92%,rgba(217,164,65,.07),transparent 38%)}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#2b4637;border-radius:3px}
+.app{height:100vh;height:100dvh}
+.pill{border:1px solid #2b4637;background:#12221a;color:#d9e3dc;padding:.5rem 1rem;border-radius:.6rem;font-size:.8rem;font-weight:600;white-space:nowrap;display:flex;gap:.4rem;align-items:center;transition:.18s}
+.pill:hover{border-color:#d9a441}
+.pill.on{background:linear-gradient(#d8283c,#a51c30);border-color:transparent;color:#fff;box-shadow:0 8px 20px -8px #d8283c}
+.pill.gold{color:#d9a441;border-color:rgba(217,164,65,.35)}
+.pill.gold.on{background:linear-gradient(#e6b856,#b9852a);color:#1a1208}
+.card{background:#12221a;border:1px solid #2b4637;border-radius:.9rem}
+.prod{transition:transform .18s,border-color .18s,box-shadow .18s}
+.prod:hover{transform:translateY(-3px);border-color:rgba(217,164,65,.6);box-shadow:0 16px 30px -14px #000}
+.prod.off{opacity:.45;filter:grayscale(.6);pointer-events:none}
+.inp{width:100%;background:#0b1511;border:1px solid #2b4637;border-radius:.6rem;padding:.45rem .75rem;font-size:.8rem;color:#f6efe0;outline:0;transition:.15s}
+.inp:focus{border-color:#d9a441;box-shadow:0 0 0 3px rgba(217,164,65,.15)}
+.btn{font-weight:700;font-size:.75rem;padding:.6rem 1rem;border-radius:.6rem;display:inline-flex;align-items:center;gap:.4rem;transition:.15s}
+.btn:disabled{opacity:.5}
+.opt{background:#12221a;border:1px solid #2b4637;padding:.5rem;border-radius:.6rem;font-size:.75rem;font-weight:600;color:#d9e3dc;display:flex;align-items:center;justify-content:center;gap:.35rem;transition:.15s}
+.opt:hover{border-color:#d9a441}
+.opt.on{background:linear-gradient(#e6b856,#b9852a);color:#1a1208;border-color:transparent;font-weight:800}
+#bgo{background:linear-gradient(90deg,#d8283c,#b3226b);color:#fff;box-shadow:0 10px 24px -10px #d8283c}
+#bgo:disabled{background:#12221a;color:#5d7466;box-shadow:none;border:1px solid #2b4637;cursor:not-allowed}
+.gold-text{background:linear-gradient(#f3cf7a,#c4902f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center}
+.chip input{display:none}
+.chip span{display:block;padding:.4rem .8rem;border:1px solid #2b4637;border-radius:99px;font-size:.8rem;cursor:pointer;transition:.15s}
+.chip input:checked+span{background:#d9a441;color:#1a1208;border-color:#d9a441;font-weight:700}
+.lbl{font-size:.75rem;color:#9fb3a6;margin:1rem 0 .5rem}
+.swal2-popup{border:1px solid #2b4637;border-radius:1.1rem}
+input[type=checkbox]{accent-color:#d9a441;width:1.1rem;height:1.1rem}
+#cart{display:none;flex-direction:column}
+#cart.open{display:flex;position:fixed;inset:0;z-index:40}
+@media(min-width:1024px){#cart,#cart.open{display:flex;position:static;width:24rem}#cbk,#fab{display:none!important}}
+@media print{body *{visibility:hidden}#tk,#tk *{visibility:visible}#tk{position:absolute;left:0;top:0;width:100%;color:#000}.np{display:none!important}}
+</style>
+</head>
+<body class="app flex flex-col overflow-hidden">
+
+<!-- LOGIN -->
+<div id="login" class="fixed inset-0 z-[60] bg-bg tex flex items-center justify-center p-4">
+  <div class="w-full max-w-sm text-center space-y-5">
+    <img src="logo.png" alt="" class="w-64 max-w-full mx-auto drop-shadow-2xl rounded-2xl" onerror="this.remove()">
+    <h1 class="fd text-3xl gold-text">TAQUERÍA DOÑA ROSA</h1>
+    <div class="card p-5 space-y-3">
+      <p class="text-xs text-mut">Ingresa la contraseña para abrir el punto de venta</p>
+      <input id="lg-pass" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')entrar()" class="inp text-center">
+      <p id="lg-err" class="text-xs text-rose hidden">Contraseña incorrecta</p>
+      <button onclick="entrar()" class="btn w-full justify-center bg-rose text-white">Abrir punto de venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENCABEZADO -->
+<header class="relative bg-sf border-b border-ln px-3 sm:px-6 py-2.5 flex justify-between items-center shrink-0">
+  <div class="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent opacity-70"></div>
+  <div class="flex items-center gap-3 min-w-0">
+    <img src="logo.png" alt="" class="h-10 w-10 rounded-full object-cover border border-gold/40" onerror="this.remove()">
+    <span class="fd text-lg sm:text-xl gold-text whitespace-nowrap">DOÑA ROSA</span>
+    <span class="hidden md:inline text-[10px] mono bg-bg text-mut px-2 py-1 rounded border border-ln">POS v1.0</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="text-right">
+      <p id="clock" class="text-sm mono text-gold tracking-widest">00:00:00</p>
+      <p class="hidden sm:flex text-[11px] text-emerald-400 items-center justify-end gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sistema en línea</p>
+    </div>
+    <div class="flex gap-1.5 border-l border-ln pl-3">
+      <button onclick="ir('dev')" title="Modo desarrollador" class="w-8 h-8 rounded-lg bg-bg border border-ln text-mut hover:text-cream hover:border-gold flex items-center justify-center"><i data-lucide="terminal" class="w-4 h-4"></i></button>
+      <button onclick="ir('dueno')" title="Panel del dueño" class="w-8 h-8 rounded-lg bg-bg border border-ln text-mut hover:text-cream hover:border-gold flex items-center justify-center"><i data-lucide="crown" class="w-4 h-4"></i></button>
+      <button onclick="salir()" title="Cerrar sesión" class="w-8 h-8 rounded-lg bg-bg border border-ln text-mut hover:text-cream hover:border-gold flex items-center justify-center"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 flex overflow-hidden">
+  <section class="flex-1 flex flex-col min-w-0 border-r border-ln tex">
+    <div id="cats" class="p-3 sm:p-4 bg-sf/70 border-b border-ln flex gap-2 overflow-x-auto shrink-0"></div>
+    <div id="vw" class="flex-1 p-3 sm:p-5 overflow-y-auto pb-24 lg:pb-5"></div>
+  </section>
+
+  <!-- ORDEN -->
+  <aside id="cart" class="w-full bg-sf shrink-0 border-l border-ln">
+    <div class="p-4 border-b border-ln flex justify-between items-center shrink-0">
+      <div class="flex items-center gap-2">
+        <button id="cbk" onclick="cerrarCarrito()" class="w-8 h-8 rounded-lg bg-bg border border-ln flex items-center justify-center"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+        <h2 class="fd text-lg">ORDEN ACTUAL</h2>
+      </div>
+      <button onclick="vaciar()" class="text-xs text-mut hover:text-rose flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Vaciar</button>
+    </div>
+    <div class="p-3 bg-bg border-b border-ln space-y-2 shrink-0">
+      <input id="cn" oninput="valida()" placeholder="Nombre y apellido del cliente" class="inp">
+      <input id="cc" type="tel" placeholder="Celular (opcional)" class="inp">
+      <div class="grid grid-cols-2 gap-2">
+        <button data-g="tipo" data-v="LLEVAR" onclick="sel('tipo','LLEVAR')" class="opt"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Para llevar</button>
+        <button data-g="tipo" data-v="LOCAL" onclick="sel('tipo','LOCAL')" class="opt"><i data-lucide="utensils" class="w-3.5 h-3.5"></i> En el local</button>
+      </div>
+      <textarea id="nt" rows="2" placeholder="Nota del pedido (opcional): sin cebolla, mesa 4..." class="inp resize-none"></textarea>
+    </div>
+    <div id="ci" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+    <div class="p-4 border-t border-ln bg-bg space-y-3 shrink-0" style="padding-bottom:max(1rem,env(safe-area-inset-bottom))">
+      <div class="flex justify-between items-baseline">
+        <span class="text-sm font-bold text-mut">Total a cobrar</span>
+        <span id="ct" class="text-2xl font-extrabold gold-text">0.00 Bs</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <button data-g="pago" data-v="Efectivo" onclick="sel('pago','Efectivo')" class="opt flex-col"><i data-lucide="banknote" class="w-4 h-4"></i>Efectivo</button>
+        <button data-g="pago" data-v="Tarjeta" onclick="sel('pago','Tarjeta')" class="opt flex-col"><i data-lucide="credit-card" class="w-4 h-4"></i>Tarjeta</button>
+        <button data-g="pago" data-v="QR" onclick="sel('pago','QR')" class="opt flex-col"><i data-lucide="qr-code" class="w-4 h-4"></i>QR / Transfer</button>
+      </div>
+      <button id="bgo" onclick="vender()" disabled class="w-full font-bold py-3.5 rounded-lg text-sm flex items-center justify-center gap-2"><i data-lucide="flame" class="w-4 h-4"></i> Enviar a cocina y registrar</button>
+    </div>
+  </aside>
+</main>
+
+<button id="fab" onclick="abrirCarrito()" class="hidden fixed right-4 bottom-4 z-30 bg-gradient-to-r from-rose to-mag text-white rounded-full shadow-2xl pl-4 pr-5 py-3 items-center gap-2.5 font-bold text-sm" style="bottom:max(1rem,env(safe-area-inset-bottom))">
+  <i data-lucide="shopping-cart" class="w-5 h-5"></i><span id="fab-n" class="bg-bg text-gold text-[11px] font-black rounded-full min-w-[20px] h-5 flex items-center justify-center">0</span><span id="fab-t">Ver orden</span>
+</button>
+
+<!-- COMANDA -->
+<div id="mc" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50 overflow-y-auto">
+  <div class="max-w-sm w-full my-auto">
+    <div id="tk" class="bg-white text-zinc-900 px-6 py-5 rounded-t-xl text-sm"></div>
+    <div class="np bg-white px-6 pb-5 rounded-b-xl">
+      <div class="flex items-center justify-between mb-2">
+        <span id="imp-est" class="text-[11px] font-bold text-zinc-400">🖨️ Impresora no conectada</span>
+        <div class="flex gap-1">
+          <button onclick="conectarBT()" class="text-[10px] font-bold px-2 py-1 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200">BT</button>
+          <button onclick="conectarUSB()" class="text-[10px] font-bold px-2 py-1 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200">USB</button>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="imprimir()" class="flex-1 bg-[#0f5b36] text-white font-bold py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 hover:brightness-110"><i data-lucide="printer" class="w-4 h-4"></i> Imprimir comanda</button>
+        <button onclick="$('mc').classList.replace('flex','hidden')" class="bg-zinc-200 text-zinc-800 font-bold px-4 py-2.5 rounded-lg text-sm hover:bg-zinc-300">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= CONFIGURACIÓN =================
+const API_URL = 'https://script.google.com/macros/s/AKfycbxbwa48VoCtUSBL08rBPaWerW6fxsO9_yQ2YSFU78hbLArBCpjS87Lg9yMUw2fZgCN9ng/exec'; // URL de la aplicación web (termina en /exec)
+const CLAVE = '1234';                                  // Contraseña de sucursal, gerencia, dev y dueño
+// Categorías que abren el selector de salsas / personalización (coincide por texto contenido)
+const CAT_OPCIONES = ['TACOS','QUESADILLAS','HUARACHES','SOPES','GORDITAS','EMPANADAS','PICADITAS','TORTAS','CALDOS'];
+const SALSAS = ['Verde','Roja','Habanero 🔥','Pico de gallo','Guacamole','Sin picante'];
+const QUITAR = ['Sin cebolla','Sin cilantro','Sin piña','Con todo'];
+// =================================================
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const bs = n => Number(n || 0).toFixed(2) + ' Bs';
+const monto = v => typeof v.totalNum === 'number' ? v.totalNum : (parseFloat(String(v.total).replace(/[^\d.]/g,'')) || 0);
+const disp = p => p.disponible !== false;
+const esBebida = p => /bebida|beverage/i.test(p.categoria || '');
+const conOpc = c => CAT_OPCIONES.some(x => String(c).toUpperCase().includes(x));
+const ETQ = { LLEVAR:'Para Llevar', LOCAL:'En el Local' };
+const SPIN = '<div class="flex flex-col items-center py-24 text-mut gap-3"><div class="w-8 h-8 border-4 border-rose border-t-transparent rounded-full animate-spin"></div><p class="fd text-sm">CARGANDO...</p></div>';
+const T = Swal.mixin({toast:true,position:'top',timer:2600,showConfirmButton:false,background:'#1a2f24',color:'#f6efe0'});
+const D = Swal.mixin({background:'#12221a',color:'#f6efe0',confirmButtonColor:'#d8283c',cancelButtonColor:'#2b4637'});
+
+let menu=[], ventas=[], carrito=[], pago='', tipo='', cat='TODOS', vista='pos', per='HOY';
+let admin=false, claveOrden=null, huella=null, enCurso=false, tk=null, cambios={};
+
+async function api(action, body) {
+  const o = body ? {method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)} : {};
+  const r = await fetch(`${API_URL}?action=${action}`, o);
+  const d = await r.json();
+  if (d && d.error && !d.exito) throw new Error(d.error);
+  return d;
+}
+const lista = async a => { const d = await api(a); return Array.isArray(d) ? d : null; };
+
+async function pedirClave(t) {
+  const r = await D.fire({title:t,input:'password',inputPlaceholder:'Contraseña',showCancelButton:true,confirmButtonText:'Ingresar',cancelButtonText:'Cancelar',inputValidator:v=>v!==CLAVE&&'Contraseña incorrecta'});
+  return r.isConfirmed;
+}
+
+// ---------- Sesión ----------
+function entrar() {
+  if ($('lg-pass').value !== CLAVE) { $('lg-err').classList.remove('hidden'); return; }
+  sessionStorage.setItem('dr','1');
+  $('login').classList.add('hidden');
+  cargarMenu();
+}
+async function salir() {
+  const r = await D.fire({title:'¿Cerrar sesión?',showCancelButton:true,confirmButtonText:'Cerrar sesión',cancelButtonText:'Cancelar'});
+  if (r.isConfirmed) { sessionStorage.removeItem('dr'); location.reload(); }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  setInterval(() => $('clock').textContent = new Date().toLocaleTimeString(), 1000);
+  ui(); lucide.createIcons();
+  if (sessionStorage.getItem('dr')) { $('login').classList.add('hidden'); cargarMenu(); }
+});
+
+// ---------- Menú y navegación ----------
+async function cargarMenu() {
+  $('vw').innerHTML = SPIN;
+  try {
+    const d = await lista('getMenu');
+    if (!d) throw new Error('Respuesta inválida del servidor');
+    menu = d; setCat('TODOS');
+  } catch (e) {
+    cats();
+    $('vw').innerHTML = `<div class="text-center py-16 space-y-3"><p class="text-rose font-bold text-sm">No se pudo cargar el menú</p><p class="text-xs text-mut">${esc(e.message)}</p><p class="text-xs text-mut">Revisa que API_URL esté configurada y la implementación sea pública.</p><button onclick="cargarMenu()" class="btn bg-rose text-white">Reintentar</button></div>`;
+  }
+}
+const ico = c => { c=c.toLowerCase(); return c.includes('beb')?'cup-soda':c.includes('postre')||c.includes('dessert')?'ice-cream-cone':c.includes('cald')||c.includes('soup')?'soup':c.includes('extra')?'circle-plus':c.includes('taco')?'flame':c==='todos'?'layout-grid':'utensils'; };
+function cats() {
+  const cs = ['TODOS', ...new Set(menu.map(p => p.categoria).filter(Boolean))];
+  $('cats').innerHTML = cs.map(c => `<button data-c="${esc(c)}" onclick="setCat(this.dataset.c)" class="pill ${vista==='pos'&&c===cat?'on':''}"><i data-lucide="${ico(c)}" class="w-3.5 h-3.5"></i>${esc(c)}</button>`).join('')
+    + '<div class="w-px bg-ln mx-1 shrink-0"></div>'
+    + `<button onclick="ir('resumen')" class="pill gold ${vista==='resumen'?'on':''}"><i data-lucide="bar-chart-2" class="w-4 h-4"></i>RESUMEN</button>`
+    + `<button onclick="ir('inv')" class="pill gold ${vista==='inv'?'on':''}"><i data-lucide="cup-soda" class="w-4 h-4"></i>INVENTARIO</button>`;
+  lucide.createIcons();
+}
+function setCat(c) { cat = c; vista = 'pos'; cats(); gridPos(); }
+
+async function ir(v) {
+  if (v === 'dev' && !await pedirClave('Modo desarrollador')) return;
+  if (v === 'dueno' && !await pedirClave('Panel del dueño')) return;
+  if ((v === 'resumen' || v === 'inv') && !admin) { if (!await pedirClave('Acceso de gerencia')) return; admin = true; }
+  vista = v; cats(); $('vw').innerHTML = SPIN;
+  try {
+    if (v !== 'dev') ventas = (await lista('getVentas')) || [];
+    if (v === 'inv' || v === 'dev') menu = (await lista('getMenu')) || menu;
+  } catch (e) { T.fire({icon:'error',title:e.message}); }
+  if (v === 'dev') cambios = {};
+  render();
+}
+function render() {
+  ({resumen:()=>vReporte(false), dueno:()=>vReporte(true), inv:vInv, dev:vDev})[vista]();
+  lucide.createIcons();
+}
+
+// ---------- POS ----------
+function gridPos() {
+  const l = cat === 'TODOS' ? menu : menu.filter(p => p.categoria === cat);
+  $('vw').innerHTML = l.length
+    ? `<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">${l.map(card).join('')}</div>`
+    : '<p class="text-center py-16 text-mut text-sm">No hay productos en esta categoría</p>';
+}
+const card = p => `<div data-id="${esc(p.id)}" onclick="pick(this.dataset.id)" class="prod card overflow-hidden cursor-pointer flex flex-col ${disp(p)?'':'off'}">
+  <div class="h-32 relative bg-gradient-to-br from-sf2 to-sf flex items-center justify-center text-4xl">🌮
+    ${p.imagenUrl?`<img src="${esc(p.imagenUrl)}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()">`:''}
+    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/70 to-transparent"></div>
+    <span class="absolute top-2 right-2 bg-bg/85 text-[10px] px-2 py-0.5 rounded text-gold font-bold border border-gold/25">${esc(p.categoria)}</span>
+    ${disp(p)?'':'<span class="absolute inset-0 flex items-center justify-center bg-black/50"><span class="bg-rose text-white text-[11px] font-black px-3 py-1 rounded">AGOTADO</span></span>'}
+  </div>
+  <div class="p-3 flex-1 flex flex-col justify-between">
+    <h3 class="font-bold text-sm line-clamp-2">${esc(p.nombre)}</h3>
+    <div class="mt-2 flex justify-between items-center"><span class="font-extrabold text-gold">${bs(p.precio)}</span><span class="bg-rose/15 text-rose w-7 h-7 rounded-lg flex items-center justify-center font-bold">+</span></div>
+  </div></div>`;
+
+async function pick(id) {
+  const p = menu.find(x => x.id === id);
+  if (!p || !disp(p)) return;
+  if (!conOpc(p.categoria)) return add(p, []);
+  const chip = (n, l) => l.map(s => `<label class="chip"><input type="checkbox" name="${n}" value="${esc(s)}"><span>${esc(s)}</span></label>`).join('');
+  const r = await D.fire({
+    title: p.nombre,
+    html: `<p class="lbl">Salsas</p><div class="chips">${chip('s',SALSAS)}</div><p class="lbl">Personalizar</p><div class="chips">${chip('q',QUITAR)}</div>`,
+    showCancelButton: true, confirmButtonText: 'Agregar a la orden', cancelButtonText: 'Cancelar',
+    preConfirm: () => [...document.querySelectorAll('.swal2-html-container input:checked')].map(i => i.value)
+  });
+  if (r.isConfirmed) add(p, r.value);
+}
+function add(p, opts) {
+  const key = p.id + '|' + opts.join('+');
+  const e = carrito.find(i => i.key === key);
+  if (e) e.cant++; else carrito.push({key, id:p.id, nombre:p.nombre, precio:Number(p.precio), opts, cant:1});
+  ui();
+}
+function qty(k, d) { carrito[k].cant += d; if (carrito[k].cant <= 0) carrito.splice(k,1); ui(); }
+function vaciar() {
+  carrito = []; pago = tipo = '';
+  ['cn','cc','nt'].forEach(i => $(i).value = '');
+  document.querySelectorAll('[data-g]').forEach(b => b.classList.remove('on'));
+  ui();
+}
+function sel(g, v) {
+  if (g === 'pago') pago = v; else tipo = v;
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  valida();
+}
+function valida() { $('bgo').disabled = !(carrito.length && pago && tipo && $('cn').value.trim()); }
+function ui() {
+  const t = carrito.reduce((s,i) => s + i.precio*i.cant, 0), n = carrito.reduce((s,i) => s + i.cant, 0);
+  $('ci').innerHTML = carrito.length ? carrito.map((i,k) => `<div class="bg-bg border border-ln rounded-lg p-3 flex justify-between gap-2">
+    <div class="min-w-0"><h4 class="text-xs font-bold">${esc(i.nombre)}</h4>${i.opts.length?`<p class="text-[11px] text-gold mt-0.5">${esc(i.opts.join(' · '))}</p>`:''}<p class="text-xs font-black text-rose mt-1">${bs(i.precio*i.cant)}</p></div>
+    <div class="flex items-center gap-2 bg-sf border border-ln rounded px-2 py-1 self-start"><button onclick="qty(${k},-1)" class="w-4 text-mut hover:text-cream">−</button><b class="text-xs w-4 text-center">${i.cant}</b><button onclick="qty(${k},1)" class="w-4 text-mut hover:text-cream">+</button></div></div>`).join('')
+    : '<p class="text-center text-mut py-12 text-sm">No hay productos en la orden</p>';
+  $('ct').textContent = bs(t);
+  $('fab').classList.toggle('hidden', !n); $('fab').classList.toggle('flex', !!n);
+  $('fab-n').textContent = n; $('fab-t').textContent = bs(t);
+  valida();
+}
+const abrirCarrito = () => { $('cart').classList.add('open'); document.body.style.overflow = 'hidden'; };
+const cerrarCarrito = () => { $('cart').classList.remove('open'); document.body.style.overflow = ''; };
+
+// ---------- Venta (idempotente) ----------
+async function vender() {
+  if (enCurso || $('bgo').disabled) return;
+  enCurso = true;
+  const b = $('bgo'); b.disabled = true; b.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Registrando venta...'; lucide.createIcons();
+  const total = carrito.reduce((s,i) => s + i.precio*i.cant, 0);
+  const d = {
+    total: total.toFixed(2) + ' Bs', metodoPago: pago,
+    clienteNombre: $('cn').value.trim(), clienteCelular: $('cc').value.trim() || 'N/A',
+    detalleJson: carrito.map(i => `${i.cant}x ${i.nombre}${i.opts.length ? ` [${i.opts.join(', ')}]` : ''}`).join(' | '),
+    tipoConsumo: ETQ[tipo], nota: $('nt').value.trim()
+  };
+  // Misma clave en los reintentos de la MISMA orden; si la orden cambia, clave nueva
+  const h = JSON.stringify(d);
+  if (!claveOrden || h !== huella) { claveOrden = crypto.randomUUID ? crypto.randomUUID() : 'O-' + Date.now() + Math.random().toString(36).slice(2); huella = h; }
+  d.claveIdempotencia = claveOrden;
+  try {
+    const r = await api('venta', d);
+    if (!r.exito) throw new Error(r.error || 'desconocido');
+    claveOrden = huella = null;
+    comanda(r.idVenta, total);
+    if (r.duplicado) T.fire({icon:'info',title:'Esta venta ya estaba registrada: ' + r.idVenta});
+    lista('getMenu').then(m => { if (m) menu = m; }).catch(() => {});
+  } catch (e) {
+    D.fire({icon:'error',title:'No se pudo registrar la venta',text:e.message + ' · La orden sigue en pantalla, puedes reintentar.'});
+  } finally {
+    enCurso = false; b.innerHTML = '<i data-lucide="flame" class="w-4 h-4"></i> Enviar a cocina y registrar'; lucide.createIcons(); valida();
+  }
+}
+
+function comanda(id, total) {
+  cerrarCarrito();
+  const f = new Date();
+  tk = {id, total:total.toFixed(2), cliente:$('cn').value.trim(), cel:$('cc').value.trim() || 'N/A', tipo:ETQ[tipo], nota:$('nt').value.trim(),
+        fecha:f.toLocaleDateString() + ' ' + f.toLocaleTimeString(), items:carrito.map(i => ({...i}))};
+  $('tk').innerHTML = `<div class="text-center border-b-2 border-dashed border-zinc-300 pb-3 mb-3">
+      <h2 class="fd text-3xl text-[#0f5b36]">DOÑA ROSA</h2>
+      <p class="text-[11px] font-bold text-zinc-500 tracking-[.2em]">*** COMANDA PARA COCINA ***</p>
+      <p class="text-xs mono font-bold mt-2">ORDEN: ${esc(id)}</p><p class="text-xs text-zinc-500 mono">${tk.fecha}</p></div>
+    <div class="bg-zinc-100 p-2.5 rounded border border-zinc-300 mb-3 text-xs space-y-0.5">
+      <p><b>CLIENTE:</b> <span class="font-black uppercase">${esc(tk.cliente)}</span></p><p><b>CELULAR:</b> ${esc(tk.cel)}</p><p><b>TIPO:</b> <span class="font-black uppercase">${tk.tipo}</span></p></div>
+    ${tk.nota?`<div class="bg-amber-50 border border-amber-300 rounded p-2 mb-3 text-xs"><b class="text-amber-800">📝 NOTA:</b> <span class="font-semibold text-amber-900">${esc(tk.nota)}</span></div>`:''}
+    <div class="space-y-3 mb-4 font-semibold">${tk.items.map(i => `<div class="border-b border-dashed border-zinc-300 pb-2">
+      <div class="flex justify-between font-black text-base"><span>${i.cant}x ${esc(i.nombre)}</span><span>${bs(i.precio*i.cant)}</span></div>
+      ${i.opts.length?`<div class="mt-1 bg-zinc-100 p-2 rounded text-xs font-bold">${i.opts.map(o=>`<p>• ${esc(o)}</p>`).join('')}</div>`:''}</div>`).join('')}</div>
+    <div class="border-t-2 border-dashed border-zinc-300 pt-3 flex justify-between items-baseline"><span class="font-bold">TOTAL:</span><span class="fd text-2xl text-[#d8283c]">${tk.total} Bs</span></div>
+    <p class="text-center text-[10px] text-zinc-400 mt-3">¡Gracias por su preferencia! 🌹</p>`;
+  $('mc').classList.replace('hidden','flex');
+  lucide.createIcons(); estadoImp(); vaciar();
+}
+
+// ---------- Impresora térmica ESC/POS (58 mm, 32 columnas) ----------
+const P = {t:null, n:'', ch:null, w:null, A:32};
+const CP = {'á':0xA0,'é':0x82,'í':0xA1,'ó':0xA2,'ú':0xA3,'Á':0xB5,'É':0x90,'Í':0xD6,'Ó':0xE0,'Ú':0xE9,'ñ':0xA4,'Ñ':0xA5,'ü':0x81,'¿':0xA8,'¡':0xAD};
+const bytes = s => [...String(s)].map(c => { const k = c.codePointAt(0); return k < 128 ? k : (CP[c] ?? 63); });
+function escpos(t) {
+  const A = P.A, o = [0x1B,0x40], tx = s => o.push(...bytes(s)), nl = () => o.push(10), al = n => o.push(0x1B,0x61,n),
+        b = n => o.push(0x1B,0x45,n), big = n => o.push(0x1D,0x21,n?0x11:0), ln = c => { tx(c.repeat(A)); nl(); };
+  const wrap = (s,w) => { const r=[]; let c=''; String(s).split(' ').forEach(x => { const k = c ? c+' '+x : x; if (k.length > w) { if (c) r.push(c); c = x.slice(0,w); } else c = k; }); if (c) r.push(c); return r; };
+  const par = (s,w) => wrap(s,w).forEach(l => { tx(l); nl(); });
+  al(1); big(1); b(1); tx('DOÑA ROSA'); nl(); big(0); b(0); tx('*** COMANDA ***'); nl(); al(0); ln('=');
+  tx('ORDEN: ' + t.id); nl(); tx(t.fecha); nl(); ln('-');
+  par('CLIENTE: ' + t.cliente.toUpperCase(), A); tx('CEL: ' + t.cel); nl(); b(1); tx('TIPO: ' + t.tipo.toUpperCase()); b(0); nl();
+  if (t.nota) { ln('-'); par('NOTA: ' + t.nota, A); }
+  ln('=');
+  t.items.forEach(i => {
+    b(1); const pr = (i.precio*i.cant).toFixed(2) + 'Bs', w = wrap(i.cant + 'x ' + i.nombre, A - pr.length - 1);
+    w.forEach((l,k) => { tx(k === w.length-1 ? l + ' '.repeat(Math.max(1, A-l.length-pr.length)) + pr : l); nl(); });
+    b(0); i.opts.forEach(s => par('  - ' + s, A)); ln('-');
+  });
+  al(1); b(1); big(1); tx('TOTAL: ' + t.total + ' Bs'); nl(); big(0); b(0); tx('Gracias por su preferencia'); nl();
+  for (let i = 0; i < 5; i++) nl();
+  return new Uint8Array(o);
+}
+const BT_PERFILES = [['000018f0-0000-1000-8000-00805f9b34fb','00002af1-0000-1000-8000-00805f9b34fb'],['0000ffe0-0000-1000-8000-00805f9b34fb','0000ffe1-0000-1000-8000-00805f9b34fb'],['49535343-fe7d-4ae5-8fa9-9fafd205e455','49535343-8841-43f4-a8d4-ecbe34729bb3']];
+async function conectarBT() {
+  if (!navigator.bluetooth) return D.fire({icon:'warning',title:'Bluetooth no disponible',text:'Usa Chrome en Android, o conecta por USB en PC.'});
+  try {
+    const dev = await navigator.bluetooth.requestDevice({acceptAllDevices:true, optionalServices:BT_PERFILES.map(p => p[0])});
+    const srv = await dev.gatt.connect(); let ch = null;
+    for (const [s,c] of BT_PERFILES) { try { ch = await (await srv.getPrimaryService(s)).getCharacteristic(c); break; } catch (e) {} }
+    if (!ch) throw new Error('No se encontró un canal de escritura compatible.');
+    Object.assign(P, {t:'bt', n:dev.name || 'Impresora', ch});
+    dev.addEventListener('gattserverdisconnected', () => { P.t = null; estadoImp(); });
+    estadoImp(); T.fire({icon:'success',title:'Impresora conectada'});
+  } catch (e) { if (e.name !== 'NotFoundError') D.fire({icon:'error',title:'No se pudo conectar',text:e.message}); }
+}
+async function conectarUSB() {
+  if (!navigator.serial) return D.fire({icon:'warning',title:'USB no disponible',text:'Usa Chrome/Edge en PC, o Bluetooth en tablet/móvil.'});
+  try {
+    const port = await navigator.serial.requestPort(); await port.open({baudRate:9600});
+    Object.assign(P, {t:'usb', n:'Impresora USB', w:port.writable.getWriter()});
+    estadoImp(); T.fire({icon:'success',title:'Impresora conectada'});
+  } catch (e) { if (e.name !== 'NotFoundError') D.fire({icon:'error',title:'No se pudo conectar',text:e.message}); }
+}
+function estadoImp() {
+  const e = $('imp-est'); e.textContent = P.t ? `🖨️ ${P.n} conectada` : '🖨️ Impresora no conectada';
+  e.classList.toggle('text-emerald-600', !!P.t); e.classList.toggle('text-zinc-400', !P.t);
+}
+async function enviar(b) {
+  if (P.t === 'bt') { for (let i = 0; i < b.length; i += 180) await P.ch.writeValueWithoutResponse(b.slice(i, i+180)); return true; }
+  if (P.t === 'usb') { await P.w.write(b); return true; }
+  return false;
+}
+async function imprimir() {
+  try { if (!(P.t && tk && await enviar(escpos(tk)))) window.print(); }
+  catch (e) { T.fire({icon:'error',title:'Error de impresora: se usa el navegador'}); window.print(); }
+}
+
+// ---------- Reportes ----------
+function enPer(a, p) {
+  const n = new Date(), d = p === 'HOY' ? 1 : p === 'SEMANA' ? 7 : new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+  const arr = a.filter(v => {
+    if (!v.fecha) return false; const f = new Date(v.fecha);
+    if (p === 'HOY') return f.toDateString() === n.toDateString();
+    if (p === 'SEMANA') return f >= new Date(n.getTime() - 7*864e5);
+    return f.getMonth() === n.getMonth() && f.getFullYear() === n.getFullYear();
+  });
+  return {arr, d};
+}
+function conteo(arr) {
+  const c = {};
+  arr.forEach(v => (v.detalle || '').split(' | ').forEach(s => {
+    const m = s.match(/^(\d+)x\s+([^\[]+)/); if (!m) return;
+    const nom = m[2].trim(), p = menu.find(x => x.nombre.trim() === nom);
+    c[nom] = c[nom] || {c:0, s:0}; c[nom].c += +m[1]; c[nom].s += +m[1] * (p ? Number(p.precio) : 0);
+  }));
+  return c;
+}
+const periodo = () => `<div class="flex bg-bg p-1 rounded-lg border border-ln">${['HOY','SEMANA','MES'].map(p => `<button onclick="per='${p}';render()" class="px-3 py-1.5 rounded-md text-xs font-bold ${p===per?'bg-rose text-white':'text-mut hover:text-cream'}">${{HOY:'Hoy',SEMANA:'Esta semana',MES:'Este mes'}[p]}</button>`).join('')}</div>`;
+const head = (ic, t, sub, extra) => `<div class="card p-4 flex flex-col md:flex-row justify-between gap-4 md:items-center mb-5"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-gold/10 border border-gold/30 flex items-center justify-center shrink-0"><i data-lucide="${ic}" class="w-5 h-5 text-gold"></i></div><div><h2 class="fd text-xl leading-none">${t}</h2><p class="text-xs text-mut mt-1">${sub}</p></div></div>${extra}</div>`;
+const kpi = (l, v, c) => `<div class="card p-5 relative overflow-hidden"><div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-rose to-gold"></div><p class="text-xs font-semibold text-mut mb-2">${l}</p><h3 class="text-3xl font-extrabold ${c}">${v}</h3></div>`;
+function vReporte(dueno) {
+  const {arr} = enPer(ventas, per), tot = arr.reduce((s,v) => s + monto(v), 0);
+  const top = Object.entries(conteo(arr)).sort((a,b) => b[1].c - a[1].c);
+  let h = head(dueno?'crown':'bar-chart-3', dueno?'PANEL DEL DUEÑO':'RESUMEN GERENCIAL', dueno?'Visión general del negocio':'Pedidos y facturación por periodo', periodo());
+  h += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">${kpi('Total facturado', bs(tot), 'gold-text')}${kpi('Total pedidos', arr.length, '')}${kpi('Ticket promedio', bs(arr.length ? tot/arr.length : 0), '')}</div>`;
+  if (dueno) {
+    const grp = (f, g) => { const o = {}; arr.forEach(v => { const k = v[f] || 'Sin dato'; o[k] = (o[k] || 0) + g(v); }); return Object.entries(o).sort((a,b) => b[1]-a[1]); };
+    const barras = (l, fmt) => l.length ? l.map(([k,v]) => { const mx = l[0][1] || 1; return `<div class="mb-3"><div class="flex justify-between text-xs mb-1"><span class="font-semibold">${esc(k)}</span><span class="text-gold font-bold">${fmt(v)}</span></div><div class="h-2 bg-bg rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-rose to-gold rounded-full" style="width:${Math.max(4, v/mx*100)}%"></div></div></div>`; }).join('') : '<p class="text-xs text-mut text-center py-4">Sin datos en este periodo</p>';
+    h += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5"><div class="card p-4"><h3 class="font-bold text-sm mb-3">Ingresos por método de pago</h3>${barras(grp('metodoPago', monto), bs)}</div><div class="card p-4"><h3 class="font-bold text-sm mb-3">Pedidos por tipo</h3>${barras(grp('tipoConsumo', () => 1), n => n + ' pedidos')}</div></div>`;
+  }
+  h += `<div class="grid grid-cols-1 ${dueno?'':'lg:grid-cols-2'} gap-5"><div class="card p-4"><h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i data-lucide="flame" class="w-4 h-4 text-rose"></i> Productos vendidos</h3><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-mut border-b border-ln"><tr><th class="p-2">Producto</th><th class="p-2 text-center">Unid.</th><th class="p-2 text-right">Subtotal</th></tr></thead><tbody class="divide-y divide-ln">${top.length ? top.slice(0, dueno?10:50).map(([k,v]) => `<tr><td class="p-2 font-bold">${esc(k)}</td><td class="p-2 text-center mono">${v.c}</td><td class="p-2 text-right text-gold font-bold">${bs(v.s)}</td></tr>`).join('') : '<tr><td colspan="3" class="p-4 text-center text-mut">Sin registros en este periodo</td></tr>'}</tbody></table></div></div>`;
+  if (!dueno) h += `<div class="card p-4"><h3 class="font-bold text-sm mb-3 flex items-center gap-2"><i data-lucide="receipt" class="w-4 h-4 text-rose"></i> Historial de órdenes</h3><div class="max-h-96 overflow-y-auto space-y-2">${arr.length ? arr.map(v => `<div class="bg-bg p-2.5 rounded-lg border border-ln text-xs space-y-1"><div class="flex justify-between font-bold gap-2"><span class="mono text-gold">${esc(v.idVenta)}</span><span class="flex-1 truncate">${esc(v.cliente)}</span><span class="text-emerald-400">${esc(v.total)}</span></div>${v.tipoConsumo?`<p class="text-[10px] text-gold font-bold">${esc(v.tipoConsumo)}${v.nota?' · Con nota':''}</p>`:''}<p class="text-[11px] text-mut line-clamp-2">${esc(v.detalle)}</p></div>`).join('') : '<p class="text-center text-mut text-xs py-4">Sin órdenes en este periodo</p>'}</div></div>`;
+  $('vw').innerHTML = h + '</div>';
+}
+
+// ---------- Inventario de bebidas ----------
+function vInv() {
+  const {arr, d} = enPer(ventas, per), v = conteo(arr), bb = menu.filter(esBebida);
+  $('vw').innerHTML = head('cup-soda', 'INVENTARIO DE BEBIDAS', 'Stock, ventas y promedio por periodo', periodo() + '<button onclick="guardarInv(this)" class="btn bg-sky-600 hover:bg-sky-500 text-white"><i data-lucide="save" class="w-4 h-4"></i> Guardar reposición</button>')
+    + `<div class="card overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-mut border-b border-ln"><tr><th class="p-3">Bebida</th><th class="p-3 text-center">Stock actual</th><th class="p-3 text-center">Vendidas</th><th class="p-3 text-center">Promedio diario</th><th class="p-3 text-center">Agregar al stock</th></tr></thead><tbody class="divide-y divide-ln">`
+    + (bb.length ? bb.map(b => { const c = (v[b.nombre.trim()] || {c:0}).c, st = (b.stock !== '' && !isNaN(parseFloat(b.stock))) ? parseFloat(b.stock) : null;
+      return `<tr><td class="p-3 font-bold">${esc(b.nombre)}</td><td class="p-3 text-center font-bold ${st !== null && st <= 5 ? 'text-rose' : ''}">${st !== null ? st : '<span class="text-mut font-normal">Sin dato</span>'}</td><td class="p-3 text-center mono">${c}</td><td class="p-3 text-center text-gold font-bold">${(c/d).toFixed(1)}</td><td class="p-3 text-center"><input type="number" min="0" step="1" placeholder="0" data-id="${esc(b.id)}" class="rep inp w-20 text-center"></td></tr>`; }).join('')
+      : '<tr><td colspan="5" class="p-4 text-center text-mut">No hay productos en la categoría BEBIDAS</td></tr>')
+    + '</tbody></table></div>';
+}
+async function guardarInv(b) {
+  const l = [...document.querySelectorAll('.rep')].map(i => ({id:i.dataset.id, cantidad:parseFloat(i.value)})).filter(c => c.cantidad > 0);
+  if (!l.length) return T.fire({icon:'info',title:'Ingresa al menos una cantidad mayor a 0'});
+  b.disabled = true;
+  try {
+    const r = await api('stock', {cambios:l});
+    if (!r.exito) throw new Error(r.error);
+    menu = (await lista('getMenu')) || menu; render();
+    T.fire({icon:'success',title:`Stock actualizado en ${r.actualizados} bebida(s)`});
+  } catch (e) { D.fire({icon:'error',title:'No se pudo guardar',text:e.message}); b.disabled = false; }
+}
+
+// ---------- Modo desarrollador ----------
+function vDev() {
+  $('vw').innerHTML = head('terminal', 'MODO DESARROLLADOR', 'Edita precios y disponibilidad del menú', '<button onclick="guardarDev(this)" class="btn bg-emerald-600 hover:bg-emerald-500 text-white"><i data-lucide="save" class="w-4 h-4"></i> Guardar cambios</button>')
+    + `<div class="card overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-mut border-b border-ln"><tr><th class="p-3">Producto</th><th class="p-3">Categoría</th><th class="p-3">Precio (Bs)</th><th class="p-3 text-center">Disponible</th></tr></thead><tbody class="divide-y divide-ln">`
+    + menu.map(p => `<tr><td class="p-3 font-bold">${esc(p.nombre)}</td><td class="p-3 text-mut">${esc(p.categoria)}</td><td class="p-3"><input type="number" step="0.01" min="0" value="${Number(p.precio).toFixed(2)}" data-id="${esc(p.id)}" onchange="mk(this.dataset.id,'precio',this.value)" class="inp w-24"></td><td class="p-3 text-center"><input type="checkbox" ${disp(p)?'checked':''} data-id="${esc(p.id)}" onchange="mk(this.dataset.id,'disponible',this.checked)"></td></tr>`).join('')
+    + '</tbody></table></div><p class="text-[11px] text-mut mt-3">Un producto marcado como no disponible aparece como agotado en el punto de venta hasta que lo reactives aquí.</p>';
+}
+function mk(id, campo, val) { cambios[id] = cambios[id] || {id}; cambios[id][campo] = campo === 'precio' ? parseFloat(val) : val; }
+async function guardarDev(b) {
+  const l = Object.values(cambios);
+  if (!l.length) return T.fire({icon:'info',title:'No hay cambios para guardar'});
+  b.disabled = true;
+  try {
+    const r = await api('productos', {cambios:l});
+    if (!r.exito) throw new Error(r.error);
+    l.forEach(c => { const p = menu.find(m => m.id === c.id); if (p) { if (c.precio !== undefined) p.precio = c.precio; if (c.disponible !== undefined) p.disponible = c.disponible; } });
+    cambios = {}; T.fire({icon:'success',title:'Precios y disponibilidad actualizados'});
+  } catch (e) { D.fire({icon:'error',title:'No se pudo guardar',text:e.message}); }
+  finally { b.disabled = false; }
+}
+</script>
+</body>
+</html>
