@@ -115,7 +115,7 @@ input[type=checkbox]{accent-color:#d9a441;width:1.1rem;height:1.1rem}
     <div class="p-4 border-t border-ln bg-bg space-y-3 shrink-0" style="padding-bottom:max(1rem,env(safe-area-inset-bottom))">
       <div class="flex justify-between items-baseline">
         <span class="text-sm font-bold text-mut">Total a cobrar</span>
-        <span id="ct" class="text-2xl font-extrabold gold-text">0.00 Bs</span>
+        <span id="ct" class="text-2xl font-extrabold gold-text">$0.00</span>
       </div>
       <div class="grid grid-cols-3 gap-2">
         <button data-g="pago" data-v="Efectivo" onclick="sel('pago','Efectivo')" class="opt flex-col"><i data-lucide="banknote" class="w-4 h-4"></i>Efectivo</button>
@@ -163,7 +163,7 @@ const QUITAR = ['Sin cebolla','Sin cilantro','Sin piña','Con todo'];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-const bs = n => Number(n || 0).toFixed(2) + ' Bs';
+const bs = n => '$' + Number(n || 0).toFixed(2);
 const monto = v => typeof v.totalNum === 'number' ? v.totalNum : (parseFloat(String(v.total).replace(/[^\d.]/g,'')) || 0);
 const disp = p => p.disponible !== false;
 const esBebida = p => /bebida|beverage/i.test(p.categoria || '');
@@ -319,7 +319,7 @@ async function vender() {
   const b = $('bgo'); b.disabled = true; b.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Registrando venta...'; lucide.createIcons();
   const total = carrito.reduce((s,i) => s + i.precio*i.cant, 0);
   const d = {
-    total: total.toFixed(2) + ' Bs', metodoPago: pago,
+    total: '$' + total.toFixed(2), metodoPago: pago,
     clienteNombre: $('cn').value.trim(), clienteCelular: $('cc').value.trim() || 'N/A',
     detalleJson: carrito.map(i => `${i.cant}x ${i.nombre}${i.opts.length ? ` [${i.opts.join(', ')}]` : ''}`).join(' | '),
     tipoConsumo: ETQ[tipo], nota: $('nt').value.trim()
@@ -357,7 +357,7 @@ function comanda(id, total) {
     <div class="space-y-3 mb-4 font-semibold">${tk.items.map(i => `<div class="border-b border-dashed border-zinc-300 pb-2">
       <div class="flex justify-between font-black text-base"><span>${i.cant}x ${esc(i.nombre)}</span><span>${bs(i.precio*i.cant)}</span></div>
       ${i.opts.length?`<div class="mt-1 bg-zinc-100 p-2 rounded text-xs font-bold">${i.opts.map(o=>`<p>• ${esc(o)}</p>`).join('')}</div>`:''}</div>`).join('')}</div>
-    <div class="border-t-2 border-dashed border-zinc-300 pt-3 flex justify-between items-baseline"><span class="font-bold">TOTAL:</span><span class="fd text-2xl text-[#d8283c]">${tk.total} Bs</span></div>
+    <div class="border-t-2 border-dashed border-zinc-300 pt-3 flex justify-between items-baseline"><span class="font-bold">TOTAL:</span><span class="fd text-2xl text-[#d8283c]">$${tk.total}</span></div>
     <p class="text-center text-[10px] text-zinc-400 mt-3">¡Gracias por su preferencia! 🌹</p>`;
   $('mc').classList.replace('hidden','flex');
   lucide.createIcons(); estadoImp(); vaciar();
@@ -378,11 +378,11 @@ function escpos(t) {
   if (t.nota) { ln('-'); par('NOTA: ' + t.nota, A); }
   ln('=');
   t.items.forEach(i => {
-    b(1); const pr = (i.precio*i.cant).toFixed(2) + 'Bs', w = wrap(i.cant + 'x ' + i.nombre, A - pr.length - 1);
+    b(1); const pr = '$' + (i.precio*i.cant).toFixed(2), w = wrap(i.cant + 'x ' + i.nombre, A - pr.length - 1);
     w.forEach((l,k) => { tx(k === w.length-1 ? l + ' '.repeat(Math.max(1, A-l.length-pr.length)) + pr : l); nl(); });
     b(0); i.opts.forEach(s => par('  - ' + s, A)); ln('-');
   });
-  al(1); b(1); big(1); tx('TOTAL: ' + t.total + ' Bs'); nl(); big(0); b(0); tx('Gracias por su preferencia'); nl();
+  al(1); b(1); big(1); tx('TOTAL: $' + t.total); nl(); big(0); b(0); tx('Gracias por su preferencia'); nl();
   for (let i = 0; i < 5; i++) nl();
   return new Uint8Array(o);
 }
@@ -484,7 +484,7 @@ async function guardarInv(b) {
 // ---------- Modo desarrollador ----------
 function vDev() {
   $('vw').innerHTML = head('terminal', 'MODO DESARROLLADOR', 'Edita precios y disponibilidad del menú', '<button onclick="guardarDev(this)" class="btn bg-emerald-600 hover:bg-emerald-500 text-white"><i data-lucide="save" class="w-4 h-4"></i> Guardar cambios</button>')
-    + `<div class="card overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-mut border-b border-ln"><tr><th class="p-3">Producto</th><th class="p-3">Categoría</th><th class="p-3">Precio (Bs)</th><th class="p-3 text-center">Disponible</th></tr></thead><tbody class="divide-y divide-ln">`
+    + `<div class="card overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-mut border-b border-ln"><tr><th class="p-3">Producto</th><th class="p-3">Categoría</th><th class="p-3">Precio ($)</th><th class="p-3 text-center">Disponible</th></tr></thead><tbody class="divide-y divide-ln">`
     + menu.map(p => `<tr><td class="p-3 font-bold">${esc(p.nombre)}</td><td class="p-3 text-mut">${esc(p.categoria)}</td><td class="p-3"><input type="number" step="0.01" min="0" value="${Number(p.precio).toFixed(2)}" data-id="${esc(p.id)}" onchange="mk(this.dataset.id,'precio',this.value)" class="inp w-24"></td><td class="p-3 text-center"><input type="checkbox" ${disp(p)?'checked':''} data-id="${esc(p.id)}" onchange="mk(this.dataset.id,'disponible',this.checked)"></td></tr>`).join('')
     + '</tbody></table></div><p class="text-[11px] text-mut mt-3">Un producto marcado como no disponible aparece como agotado en el punto de venta hasta que lo reactives aquí.</p>';
 }
